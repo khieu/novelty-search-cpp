@@ -5,6 +5,7 @@
 #include "neat.h"
 #include "population.h"
 #include "experiments.h"
+#include <cstring>
 
 using namespace std;
 

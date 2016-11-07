@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <cmath>
 #include <sstream>
+#include <cstring>
 
 using namespace NEAT;
 using namespace std;

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <cstring>
 using namespace std;
 using namespace NEAT;
 
