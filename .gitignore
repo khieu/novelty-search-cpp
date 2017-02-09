@@ -10,3 +10,6 @@
 *.lai
 *.la
 *.a
+# Output files
+*.txt*
+*.dat
