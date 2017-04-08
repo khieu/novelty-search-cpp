@@ -52,6 +52,28 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
 	return diff;
 }
 
+// novelty metric for maze, take component weights into account
+float maze_novelty_metric_weighted_component(noveltyitem* x,noveltyitem* y, vector<float>& weights) {
+  float distance = 0.0;
+  // calculating distance. Running maze exp shows that data (vector of vector of float) has size one
+  for(int k=0;k<(int)x->data.size();k++) {
+    // get behavior vector from 2 noveltyitem
+    vector<float> x_data = x->data[k];
+    vector<float> y_data = y->data[k];
+    int size = x_data.size();
+    float diff_accum = 0.0;
+
+    for(int x = 0; x < size; x++) {
+      float diff = x_data[x] - y_data[x];
+      // using corresponding weight to multiply with the absolute difference
+      diff_accum += weights[x]*abs(diff);
+    }
+
+    distance += diff_accum/size;
+  }
+  return distance;
+}
+
 //fitness simulation of maze navigation
 Population *maze_fitness_realtime(char* outputdir,const char *mazefile,int par) {
     Population *pop;
@@ -316,7 +338,7 @@ int maze_novelty_realtime_loop(Population *pop) {
    float archive_thresh=6.0; //initial novelty threshold
 
   //archive of novel behaviors
-  noveltyarchive archive(archive_thresh,*maze_novelty_metric);
+  noveltyarchive archive(archive_thresh,*maze_novelty_metric_weighted_component);
 	
   data_rec Record; //stores run information
 	

@@ -1,3 +1,4 @@
+#include "stats.h"
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
@@ -5,8 +6,8 @@
 #include <map>
 using namespace std;
 
-double average(vector<double> data) {
-  double avg = 0;
+float average(vector<float> data) {
+  float avg = 0;
   for (int i = 0; i < data.size(); i++) {
     avg += data[i];
   }
@@ -16,27 +17,27 @@ double average(vector<double> data) {
 }
 
 
-double range(vector<double> data) {
+float range(vector<float> data) {
   // find max in array
-  double max = data[0];
+  float max = data[0];
   for (int i = 0; i < data.size(); i++) {
     if (data[i] > max) {
       max = data[i];
     } 
   }
   // find min in array
-  double min = data[0];
+  float min = data[0];
   for (int i = 0; i < data.size(); i++) {
     if (data[i] < min) {
       min = data[i];
     } 
   }
   // return max - min
-  return (double) (max - min);
+  return (float) (max - min);
 }
 
-double innerQuartileRange(vector<double> data) {
-  double q1,q3;
+float innerQuartileRange(vector<float> data) {
+  float q1,q3;
   //sort data
   std::sort(data.begin(), data.end());
   // find median
@@ -53,8 +54,8 @@ double innerQuartileRange(vector<double> data) {
   return q3 - q1;
 }
 
-double meanAbsoluteDeviation(vector<double> data) {
-  double avg = average(data), mad = 0;
+float meanAbsoluteDeviation(vector<float> data) {
+  float avg = average(data), mad = 0;
 
   for (int i = 0; i < data.size(); i++) {
     mad += abs(data[i] - avg);
@@ -64,30 +65,30 @@ double meanAbsoluteDeviation(vector<double> data) {
   return mad;
 }
 
-double variance(vector<double> data) {
-  double avg = average(data), variance = 0;
+float variance(vector<float> data) {
+  float avg = average(data), variance = 0;
 
   for (int i = 0; i < data.size(); i++) {
     variance += pow((data[i] - avg), 2);
   }
-  variance = (double) variance / data.size();
+  variance = (float) variance / data.size();
   return variance;
 }
 
-double standardDeviation(vector<double> data) {
-  double vrnc = variance(data);
-  double stdDeviation = sqrt(vrnc);
+float standardDeviation(vector<float> data) {
+  float vrnc = variance(data);
+  float stdDeviation = sqrt(vrnc);
   return stdDeviation;
 }
 
-double entropy(vector<double> data) {
+float entropy(vector<float> data) {
   // calculate # of appearance of each point in the data vector
-  map<double, double> count;
+  map<float, float> count;
   for (int i = 0; i < data.size(); i++) {
     if (count.find(data[i]) == count.end()) {
-      count.insert(pair<double, double>(data[i],1));
+      count.insert(pair<float, float>(data[i],1));
     } else {
-      map<double,double>::iterator it = count.find(data[i]);
+      map<float,float>::iterator it = count.find(data[i]);
       it->second = it->second + 1;
     }
   }
@@ -97,9 +98,9 @@ double entropy(vector<double> data) {
     it.second = it.second/size;
   }
   // calculate info entropy
-  double sum = 0;
+  float sum = 0;
   for (auto& it : count) {
-    double pi = it.second;
+    float pi = it.second;
     sum += pi*log2(pi);
   }
   sum = -sum;
@@ -107,21 +108,42 @@ double entropy(vector<double> data) {
   return sum;
 }
 
-int main( int argc, const char* argv[] )
-{
-  printf( "\nHello World\n\n" );
-  vector<double> data = {1,2,25,3,5,6,3,4, 12, 18};
-  double x = innerQuartileRange(data);
-  cout << x << endl;
-  vector<double> x1 = {2,2,4,4};
-  vector<double> x2 = {1,1,6,4};
-  cout << meanAbsoluteDeviation(x1) << endl;
-  cout << meanAbsoluteDeviation(x2) << endl;
-  vector<double> x3 = {2,4,4,4,5,5,7,9};
-  double vrnc = variance(x3);
-  double stdDeviation = standardDeviation(x3);
-  cout << vrnc << endl;
-  cout << stdDeviation << endl;
-  vector<double> x4 = {1,1,2,3};
-  cout << entropy(x4) << endl;
+vector<float> normalize(vector<float> data) {
+  // calculating the sum of all elems in data vector
+  float sum = 0;
+  for (auto& val : data) {
+    sum += val;
+  }
+
+  // normalize by dividing each element by the sum
+  vector<float> norm;
+  for (auto& val : data) {
+    norm.push_back(val/sum);
+  }
+  return norm;
 }
+
+// int main( int argc, const char* argv[] )
+// {
+//   printf( "\nHello World\n\n" );
+//   vector<float> data = {1,2,25,3,5,6,3,4, 12, 18};
+//   float x = innerQuartileRange(data);
+//   cout << x << endl;
+//   vector<float> x1 = {2,2,4,4};
+//   vector<float> x2 = {1,1,6,4};
+//   cout << meanAbsoluteDeviation(x1) << endl;
+//   cout << meanAbsoluteDeviation(x2) << endl;
+//   vector<float> x3 = {2,4,4,4,5,5,7,9};
+//   float vrnc = variance(x3);
+//   float stdDeviation = standardDeviation(x3);
+//   cout << vrnc << endl;
+//   cout << stdDeviation << endl;
+//   vector<float> x4 = {1,1,2,3};
+//   cout << entropy(x4) << endl;
+//   vector<float> x5 = {1,2,3,4};
+//   x5 = normalize(x5);
+//   for (auto& val : x5) {
+//     cout << val << endl;
+//   }
+
+// }

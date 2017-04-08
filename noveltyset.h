@@ -11,6 +11,7 @@
 #include <cstdlib>
 
 #include "population.h"
+#include "stats.h"
 
 #define ARCHIVE_SEED_AMOUNT 1
 
@@ -111,7 +112,8 @@ private:
 	//novel items waiting addition to the set pending the end of the generation 
 	vector<noveltyitem*> add_queue;
 	//the measure of novelty
-	float (*novelty_metric)(noveltyitem*,noveltyitem*);
+	//float (*novelty_metric)(noveltyitem*,noveltyitem*);
+	float (*novelty_metric)(noveltyitem*,noveltyitem*,vector<float>&);
 	//minimum threshold for a "novel item"
 	float novelty_threshold;
 	float novelty_floor;
@@ -133,7 +135,7 @@ private:
 public:
 
 	//constructor
-	noveltyarchive(float threshold,float (*nm)(noveltyitem*,noveltyitem*),bool rec=true)
+	noveltyarchive(float threshold,float (*nm)(noveltyitem*,noveltyitem*, vector<float>&),bool rec=true)
 	{
 		//how many nearest neighbors to consider for calculating novelty score?
 		neighbors=15;
@@ -455,27 +457,84 @@ public:
 	}
 
 	//map the novelty metric across the archive
-	vector<sort_pair> map_novelty(float (*nov_func)(noveltyitem*,noveltyitem*),noveltyitem* newitem)
+	vector<sort_pair> map_novelty(float (*nov_func)(noveltyitem*,noveltyitem*, vector<float>&),noveltyitem* newitem)
 	{
+		// calculate weights for each component in novel_items vector in archive
+		vector<float> weights = calculate_weights_by_component(novel_items);
 		vector<sort_pair> novelties;
 		for(int i=0;i<(int)novel_items.size();i++)
 		{			
-			novelties.push_back(make_pair((*novelty_metric)(novel_items[i],newitem),novel_items[i])); 
+			novelties.push_back(make_pair((*novelty_metric)(novel_items[i],newitem,weights),novel_items[i])); 
 		}
 		return novelties;
 	}
-	
+
+	/**
+		Calculate weight for each dimension/component in a behavior vector.
+	*/
+	vector<float> calculate_weights_by_component(vector<noveltyitem*> novelty_items_collection) {
+		// creating vector of vectors of dimensions. each element vector contains all value of a dimension
+		// eg: <x1,x2,....xn>, <y1,y2,.....yn>
+		int num_dimensions = 4;//novel_items[0]->data[0].size();
+		vector<vector<float> > data_by_dimensions(num_dimensions);
+		// populating data for list of data by dimensions
+		// first loop through each novelty item
+		for(int i=0;i<(int)novelty_items_collection.size();i++) {
+			// for each novelty item take out the data
+			// ******* Running Maze experiment confirms that data (which is a vector of vectors of float)
+			// always have size 1. Thus it is in fact a 1-d array so getting data[0] is ok here
+			vector<float> novel_item_data = novelty_items_collection[i]->data[0];
+			// for each element in current novelty item data, add it to the corresponding dimension data list.
+			// **** running exp shows that all each and all novelty item data has 4 elements but 2 are duplicates
+			// eg : <x1, y1, x1, y1>
+			for (int j = 0; j < novel_item_data.size(); j++) {
+				data_by_dimensions[j].push_back(novel_item_data[j]);
+			}
+		}
+		vector<float> entropy_by_dimensions(num_dimensions);
+		// calculate entropy for each dimension
+		for (int i = 0; i < num_dimensions; i++) {
+			vector<float> dat =	data_by_dimensions[i];
+			entropy_by_dimensions[i] = entropy(dat);
+		}
+		/*
+			calculating weights for each dimension/component by:
+			1. normalize the list of entropies
+			2. get reciprocals of all values in the normalized data
+			3. Normalize the vector of reciprocals
+		*/
+		// 1. normalize the entropy
+		vector<float> normalized_entropies = normalize(entropy_by_dimensions);
+		// 2. take reciprocals
+		for (auto& val : normalized_entropies) {
+			val = 1/val;
+		}
+		// 3. normalize again to get weights
+		vector<float> weights = normalize(normalized_entropies);
+
+		return weights;
+
+	}
+
+
 	//map the novelty metric across the archive + current population
-	vector<sort_pair> map_novelty_pop(float (*nov_func)(noveltyitem*,noveltyitem*),noveltyitem* newitem, Population* pop)
+	vector<sort_pair> map_novelty_pop(float (*nov_func)(noveltyitem*,noveltyitem*, vector<float>&),noveltyitem* newitem, Population* pop)
 	{
+		// construct vector of noveltyitem from population
+		vector<noveltyitem*> novelty_items_collection;
+		for(int i=0;i<(int)pop->organisms.size();i++)
+			novelty_items_collection.push_back(pop->organisms[i]->noveltypoint);
+		//calculate weights for each component for the population
+		vector<float> weights = calculate_weights_by_component(novelty_items_collection);
+
 		vector<sort_pair> novelties;
 		for(int i=0;i<(int)novel_items.size();i++)
 		{
-			novelties.push_back(make_pair((*novelty_metric)(novel_items[i],newitem),novel_items[i]));
+			novelties.push_back(make_pair((*novelty_metric)(novel_items[i],newitem, weights),novel_items[i]));
 		}
 		for(int i=0;i<(int)pop->organisms.size();i++)
 		{
-			novelties.push_back(make_pair((*novelty_metric)(pop->organisms[i]->noveltypoint,newitem),
+			novelties.push_back(make_pair((*novelty_metric)(pop->organisms[i]->noveltypoint,newitem,weights),
 				pop->organisms[i]->noveltypoint));
 		}
 		return novelties;

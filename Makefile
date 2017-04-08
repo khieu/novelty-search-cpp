@@ -11,8 +11,8 @@ LIBS = -lm
 #CFLAGS = -g -Wall -Werror
 CFLAGS = -g -Wall -O3 
 
-rtneat: maze.h neat.o network.o nnode.o link.o trait.o gene.o genome.o innovation.o organism.o species.o population.o experiments.o noveltyexp.o neatmain.o noveltyset.o  #neatswig_wrap.o visual.o
-	$(CC) $(CFLAGS) neat.o network.o nnode.o link.o trait.o gene.o genome.o innovation.o organism.o species.o population.o experiments.o neatmain.o noveltyexp.o noveltyset.o  -o rtneat $(LIBS)
+rtneat: maze.h neat.o network.o nnode.o link.o trait.o gene.o genome.o innovation.o organism.o species.o population.o experiments.o noveltyexp.o neatmain.o noveltyset.o stats.o  #neatswig_wrap.o visual.o
+	$(CC) $(CFLAGS) neat.o network.o nnode.o link.o trait.o gene.o genome.o innovation.o organism.o species.o population.o experiments.o neatmain.o noveltyexp.o noveltyset.o stats.o  -o rtneat $(LIBS)
 #	$(CC) $(CFLAGS) $(LIBS) networks.o genetics.o visual.o experiments.o neatswig_wrap.o neatmain.o -o neat `gtkmm-config --cflags --libs`
 
 ########################
@@ -61,6 +61,8 @@ noveltyexp.o: noveltyexp.cpp noveltyset.h experiments.h
 noveltyset.o: noveltyset.cpp noveltyset.h
 	$(CC) $(CFLAGS) -c noveltyset.cpp -o noveltyset.o
 
+stats.o: stats.cpp stats.h
+	$(CC) $(CFLAGS) -c stats.cpp -o stats.o
 
 
 ########################
