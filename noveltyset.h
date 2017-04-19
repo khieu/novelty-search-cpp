@@ -439,7 +439,7 @@ public:
 					density = sum/weight; 
 			}
 		}	
-		
+
 		item->novelty=density;
 		item->generation=generation;
 		return density;
@@ -473,6 +473,13 @@ public:
 		Calculate weight for each dimension/component in a behavior vector.
 	*/
 	vector<float> calculate_weights_by_component(vector<noveltyitem*> novelty_items_collection) {
+		// base case where the novelty archive is empty
+		if (novelty_items_collection.size() == 0) {
+			float arr[] = {1,1,1,1};
+			vector<float> vec (arr, arr + sizeof(arr) / sizeof(arr[0]) );
+			return vec;
+		}
+
 		// creating vector of vectors of dimensions. each element vector contains all value of a dimension
 		// eg: <x1,x2,....xn>, <y1,y2,.....yn>
 		int num_dimensions = 4;//novel_items[0]->data[0].size();
@@ -495,7 +502,9 @@ public:
 		// calculate entropy for each dimension
 		for (int i = 0; i < num_dimensions; i++) {
 			vector<float> dat =	data_by_dimensions[i];
-			entropy_by_dimensions[i] = entropy(dat);
+			float entropy_data = entropy(dat);
+			// if entropy is 0 (data only have 1 element point) then assign weight to 1
+			entropy_by_dimensions[i] = (entropy_data == 0) ? 1 : entropy_data;
 		}
 		/*
 			calculating weights for each dimension/component by:
