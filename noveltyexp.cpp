@@ -337,8 +337,19 @@ int maze_novelty_realtime_loop(Population *pop) {
 
    float archive_thresh=6.0; //initial novelty threshold
 
+  // SELECT DIMENSION WEIGHTING METHOD
+  cout << "Dimension weighting method:" << endl;
+  cout << "1 - entropy" << endl;
+  cout << "2 - standard deviation" << endl;
+  cout << "3 - mean absolute deviation" << endl;
+  cout << "4 - Innerquartile range" << endl;
+  cout << "5 - range" << endl;
+  cout << "6 - variance" << endl;
+  int dimensionWeightingMethod = 0;
+  cin >> dimensionWeightingMethod;
+
   //archive of novel behaviors
-  noveltyarchive archive(archive_thresh,*maze_novelty_metric_weighted_component);
+  noveltyarchive archive(archive_thresh,*maze_novelty_metric_weighted_component, true, dimensionWeightingMethod);
 	
   data_rec Record; //stores run information
 	

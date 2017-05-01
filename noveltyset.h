@@ -132,10 +132,13 @@ private:
 	
 	//current generation
 	int generation;
+
+	//Dimension weighting function
+	float (*dimensionWeightingFunction)(vector<float>);
 public:
 
 	//constructor
-	noveltyarchive(float threshold,float (*nm)(noveltyitem*,noveltyitem*, vector<float>&),bool rec=true)
+	noveltyarchive(float threshold,float (*nm)(noveltyitem*,noveltyitem*, vector<float>&),bool rec=true, int dimensionWeightingMethod=1)
 	{
 		//how many nearest neighbors to consider for calculating novelty score?
 		neighbors=15;
@@ -149,6 +152,27 @@ public:
 		hall_of_fame=false;
 		threshold_add=true;
 		
+		switch(dimensionWeightingMethod) {
+			case 1:
+				dimensionWeightingFunction = *entropy;
+				break;
+			case 2:
+				dimensionWeightingFunction = *standardDeviation;
+				break;
+			case 3:
+				dimensionWeightingFunction = *meanAbsoluteDeviation;
+				break;
+			case 4:
+				dimensionWeightingFunction = *innerQuartileRange;
+				break;
+			case 5:
+				dimensionWeightingFunction = *range;
+				break;
+			case 6:
+				dimensionWeightingFunction = *variance;
+				break;
+		}
+
 		if(record)
 		{
 			datafile = new ofstream("runresults.dat");
@@ -502,9 +526,9 @@ public:
 		// calculate entropy for each dimension
 		for (int i = 0; i < num_dimensions; i++) {
 			vector<float> dat =	data_by_dimensions[i];
-			float entropy_data = entropy(dat);
-			// if entropy is 0 (data only have 1 element point) then assign weight to 1
-			entropy_by_dimensions[i] = (entropy_data == 0) ? 1 : entropy_data;
+			float dimensionWeight = dimensionWeightingFunction(dat);
+			// if dimensionWeight is 0 (data only have 1 element point) then assign weight to 1
+			entropy_by_dimensions[i] = (dimensionWeight == 0) ? 1 : dimensionWeight;
 		}
 		/*
 			calculating weights for each dimension/component by:
