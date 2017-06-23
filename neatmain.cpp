@@ -42,8 +42,8 @@ int main(int argc, char **argv) {
 	if(argc>5)
 		param=atoi(argv[5]);
  
-  if (argc>3)
-	strcpy(mazename,argv[3]);
+  if (argc>2)
+	strcpy(mazename,argv[2]);
 
   if (argc>2)
 	strcpy(filename,argv[2]);
